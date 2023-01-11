@@ -9,7 +9,7 @@ setup(
     setup_requires=['setuptools_scm'],
     name='TcArch',
     description='Script to test ...',
-    keywords='mkdocs twincat',
+    keywords='twincat',
     url='https://github.com/TobiasFreyermuth/TcArch',
     author='Tobias Freyermuth',
     author_email='Tobias.Freyermuth@posteo.net',
