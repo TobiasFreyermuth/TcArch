@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 from lxml import etree
 
@@ -67,7 +68,10 @@ def filter_out_black_list_files(black_list, files, name_pattern):
 
 
 if __name__ == '__main__':
-    src = r'C:\Users\freyermu\Documents\TcHAL\TcHAL'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_file', help='input file to be check')
+    args = parser.parse_args()
+    src = args.input_file
     pou_suffix = '.TcPOU'
     config_suffix = '_config.xml'
 
@@ -108,7 +112,11 @@ if __name__ == '__main__':
     # check if pou and config are in the same folder
 
     tree = etree.ElementTree(xunit_results_xml)
-    tree.write('test_results.xml', pretty_print=True)
+    tree.write('TcArch_results.xml', pretty_print=True)
+    if len(pous_without_config) > 0 or len(config_without_pou) > 0:
+        exit(1)
+    else:
+        exit(0)
 
 
 
