@@ -69,9 +69,9 @@ def filter_out_black_list_files(black_list, files, name_pattern):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_file', help='input file to be check')
+    parser.add_argument('project_path', help='TwinCAT project folder path')
     args = parser.parse_args()
-    src = args.input_file
+    src = args.project_path
     pou_suffix = '.TcPOU'
     config_suffix = '_config.xml'
 
