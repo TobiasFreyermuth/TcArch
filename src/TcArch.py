@@ -12,10 +12,10 @@ def get_xunit_result_xml():
 
 def add_test_results_to_xunit_results_xml(results_xml, test_suit_name, passed_test, failed_tests, test_id):
     number_of_failed_test = len(failed_tests)
-    results_xml.set('failures', results_xml.get('failures') + str(number_of_failed_test))
+    results_xml.set('failures', str(int(results_xml.get('failures')) + number_of_failed_test))
 
     number_of_test_in_suit = len(passed_test) + number_of_failed_test
-    results_xml.set('tests', results_xml.get('tests') + str(number_of_test_in_suit))
+    results_xml.set('tests', str(int(results_xml.get('tests')) + number_of_test_in_suit))
 
     testsuite_node = etree.Element("testsuite")
     testsuite_node.set('id', str(test_id))
@@ -26,7 +26,7 @@ def add_test_results_to_xunit_results_xml(results_xml, test_suit_name, passed_te
         test_node = etree.Element("testcase")
         test_node.set('name', test_name)
         test_node.set('assertions', '3')
-        test_node.set('classname', test_name)
+        test_node.set('classname', test_suit_name)
         test_node.set('status', 'PASS')
         testsuite_node.append(test_node)
 
@@ -34,7 +34,7 @@ def add_test_results_to_xunit_results_xml(results_xml, test_suit_name, passed_te
         test_node = etree.Element("testcase")
         test_node.set('name', test_name)
         test_node.set('assertions', '3')
-        test_node.set('classname', test_name)
+        test_node.set('classname', test_suit_name)
         test_node.set('status', 'FAILED')
         failure_node = etree.Element("failure")
         failure_node.set('exception-type', 'no clue')
