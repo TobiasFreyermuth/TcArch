@@ -1,4 +1,5 @@
 import argparse
+import re
 from pathlib import Path
 from lxml import etree
 
@@ -51,11 +52,11 @@ def add_test_results_to_xunit_results_xml(results_xml, test_suit_name, passed_te
     return test_id + 1
 
 
-def filter_out_black_list_files(black_list, files, name_pattern):
+def filter_out_black_list_files_and_folders(file_black_list, folder_black_list, files, name_pattern):
     tmp = {}
     for file_path in files:
         if file_path.is_file():
-            res = [ele for ele in black_list if (ele in str(file_path.relative_to(src)))]
+            res = [ele for ele in folder_black_list if (ele in str(file_path.relative_to(src)))]
             if len(res) > 0:
                 pass
             else:
@@ -64,6 +65,14 @@ def filter_out_black_list_files(black_list, files, name_pattern):
                     pass
                 else:
                     tmp[device_name] = file_path
+
+    del_ = []
+    for file_filter in file_black_list:
+        p = re.compile(file_filter, re.IGNORECASE)
+        del_ += [key for key, value in tmp.items() if p.match(value.name)]
+    for x in del_:
+        tmp.pop(x)
+
     return tmp
 
 
@@ -76,8 +85,9 @@ if __name__ == '__main__':
     config_suffix = '_config.xml'
 
     folderIgnoreList = ['_internal', 'Utilities']
-    pous = filter_out_black_list_files(folderIgnoreList, Path(src).rglob(f'*{pou_suffix}'), pou_suffix)
-    configs = filter_out_black_list_files(folderIgnoreList, Path(src).rglob(f'*{config_suffix}'), config_suffix)
+    filesIgnoreList = [r'\w*_Test[.]TcPOU', 'Tests[.]TcPOU']
+    pous = filter_out_black_list_files_and_folders(filesIgnoreList, folderIgnoreList, Path(src).rglob(f'*{pou_suffix}'), pou_suffix)
+    configs = filter_out_black_list_files_and_folders(filesIgnoreList, folderIgnoreList, Path(src).rglob(f'*{config_suffix}'), config_suffix)
 
     pou_names = set(pous.keys())
     configs_names = set(configs.keys())
@@ -120,3 +130,4 @@ if __name__ == '__main__':
 
 
 
+#  add test to make sure all test FB are internal
