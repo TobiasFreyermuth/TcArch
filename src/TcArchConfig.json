@@ -1,0 +1,27 @@
+{
+  "general": {"project_type":  "TwinCAT3"},
+  "plugins": [
+    { "name":  "TerminalAbstractionConfigFilesTest",
+      "path": "plugins.EuXFEL_TcHAL_Tests",
+      "settings":  {"folderIgnoreList": ["_internal", "Utilities"],
+                  "configFilePrefix" : "",
+                  "configFileSuffix": "_config",
+                  "configFileEnding": "xml",
+                  "configFileRelativeToPouFile": "/"}
+  },
+   { "name":  "FunctionBlockNamingConventionTest",
+      "path": "plugins.EuXFEL_NamingConventionTests",
+      "settings":  {"folderIgnoreList": ["_internal", "Utilities"],
+                  "configFilePrefix" : "",
+                  "configFileSuffix": "_config",
+                  "configFileEnding": "xml",
+                  "configFileRelativeToPouFile": "/"}
+  },
+    { "name":  "TcUnitTestAreInternalTest",
+      "path": "plugins.EuXFEL_LibraryTest",
+      "settings":{}
+    }
+  ]
+}
+
+

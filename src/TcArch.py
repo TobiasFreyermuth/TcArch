@@ -1,133 +1,114 @@
 import argparse
-import re
-from pathlib import Path
+import pathlib
+import json
 from lxml import etree
 
 
-def get_xunit_result_xml():
-    root_node = etree.Element("testsuites")
-    root_node.set('failures', '0')
-    root_node.set('tests', '0')
-    return root_node
+class Checker(object):
+    def __init__(self, id):
+        self.suit_name = self.__class__.__name__
+        self.id = id
+        self.__results = []
 
-
-def add_test_results_to_xunit_results_xml(results_xml, test_suit_name, passed_test, failed_tests, test_id):
-    number_of_failed_test = len(failed_tests)
-    results_xml.set('failures', str(int(results_xml.get('failures')) + number_of_failed_test))
-
-    number_of_test_in_suit = len(passed_test) + number_of_failed_test
-    results_xml.set('tests', str(int(results_xml.get('tests')) + number_of_test_in_suit))
-
-    testsuite_node = etree.Element("testsuite")
-    testsuite_node.set('id', str(test_id))
-    testsuite_node.set('name', test_suit_name)
-    testsuite_node.set('tests', str(number_of_test_in_suit))
-    testsuite_node.set('failures', str(number_of_failed_test))
-    for test_name in passed_test:
-        test_node = etree.Element("testcase")
-        test_node.set('name', test_name)
-        test_node.set('assertions', '3')
-        test_node.set('classname', test_suit_name)
-        test_node.set('status', 'PASS')
-        testsuite_node.append(test_node)
-
-    for test_name in failed_tests:
-        test_node = etree.Element("testcase")
-        test_node.set('name', test_name)
-        test_node.set('assertions', '3')
-        test_node.set('classname', test_suit_name)
-        test_node.set('status', 'FAILED')
-        failure_node = etree.Element("failure")
-        failure_node.set('exception-type', 'no clue')
-        message_node = etree.Element("message")
-        message_node.text = etree.CDATA('message')
-        stack_trace_node = etree.Element("stack-trace")
-        stack_trace_node.text = etree.CDATA('stack-trace')
-        failure_node.append(message_node)
-        failure_node.append(stack_trace_node)
-        test_node.append(failure_node)
-        testsuite_node.append(test_node)
-
-    results_xml.append(testsuite_node)
-    return test_id + 1
-
-
-def filter_out_black_list_files_and_folders(file_black_list, folder_black_list, files, name_pattern):
-    tmp = {}
-    for file_path in files:
-        if file_path.is_file():
-            res = [ele for ele in folder_black_list if (ele in str(file_path.relative_to(src)))]
-            if len(res) > 0:
-                pass
+    def get_result_xml(self):
+        for has_passed, name, msg, exception_type, stack_trace in self.__results:
+            if self.has_passed:
+                test_node = etree.Element("testcase")
+                test_node.set('name', name)
+                test_node.set('assertions', '3')
+                test_node.set('classname', self.suit_name)
+                test_node.set('status', 'PASS')
             else:
-                device_name = file_path.name.replace(name_pattern, '')
-                if device_name in tmp:
-                    pass
-                else:
-                    tmp[device_name] = file_path
+                test_node = etree.Element("testcase")
+                test_node.set('name', name)
+                test_node.set('assertions', '3')
+                test_node.set('classname', self.suit_name)
+                test_node.set('status', 'FAILED')
+                failure_node = etree.Element("failure")
+                failure_node.set('exception-type', exception_type)
+                message_node = etree.Element("message")
+                message_node.text = etree.CDATA(msg)
+                stack_trace_node = etree.Element("stack-trace")
+                stack_trace_node.text = etree.CDATA(stack_trace)
+                failure_node.append(message_node)
+                failure_node.append(stack_trace_node)
+                test_node.append(failure_node)
 
-    del_ = []
-    for file_filter in file_black_list:
-        p = re.compile(file_filter, re.IGNORECASE)
-        del_ += [key for key, value in tmp.items() if p.match(value.name)]
-    for x in del_:
-        tmp.pop(x)
+        return test_node
 
-    return tmp
+    def _add_result(self, has_passed, check_name, message='', exception_type='no clue', stack_trace='stack-trace'):
+        pass
+
+
+class TcArchTestResult(object):
+    def __init__(self, suit_name, name, id, has_passed, message='', exception_type='no clue', stack_trace='stack-trace'):
+        self.suit_name = suit_name
+        self.name = name
+        self.id = id
+        self.has_passed = has_passed
+        self.message = message
+        self.exception_type = exception_type
+        self.stack_trace = stack_trace
+
+    def get_xml(self):
+        if self.has_passed:
+            test_node = etree.Element("testcase")
+            test_node.set('name', self.name)
+            test_node.set('assertions', '3')
+            test_node.set('classname', self.suit_name)
+            test_node.set('status', 'PASS')
+        else:
+            test_node = etree.Element("testcase")
+            test_node.set('name', self.name)
+            test_node.set('assertions', '3')
+            test_node.set('classname', self.suit_name)
+            test_node.set('status', 'FAILED')
+            failure_node = etree.Element("failure")
+            failure_node.set('exception-type', self.exception_type)
+            message_node = etree.Element("message")
+            message_node.text = etree.CDATA(self.message)
+            stack_trace_node = etree.Element("stack-trace")
+            stack_trace_node.text = etree.CDATA(self.stack_trace)
+            failure_node.append(message_node)
+            failure_node.append(stack_trace_node)
+            test_node.append(failure_node)
+
+        return test_node
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('project_path', help='TwinCAT project folder path')
     args = parser.parse_args()
-    src = args.project_path
-    pou_suffix = '.TcPOU'
-    config_suffix = '_config.xml'
 
-    folderIgnoreList = ['_internal', 'Utilities']
-    filesIgnoreList = [r'\w*_Test[.]TcPOU', 'Tests[.]TcPOU']
-    pous = filter_out_black_list_files_and_folders(filesIgnoreList, folderIgnoreList, Path(src).rglob(f'*{pou_suffix}'), pou_suffix)
-    configs = filter_out_black_list_files_and_folders(filesIgnoreList, folderIgnoreList, Path(src).rglob(f'*{config_suffix}'), config_suffix)
+    p = pathlib.Path(args.project_path)
+    if p.exists():
+        from PlcProjectParser.TwinCatProjectParser import TwinCatProjectParser
+        prj = TwinCatProjectParser(p)
 
-    pou_names = set(pous.keys())
-    configs_names = set(configs.keys())
-    pous_without_config = (pou_names - configs_names)
-    config_without_pou = (configs_names - pou_names)
-    the_good_ones = pou_names - pous_without_config
+        test_results = []
+        with open('TcArchConfig.json', 'r') as config_file:
+            json_config = json.load(config_file)
+            import importlib
+            for x in json_config.get('plugins'):
+                try:
+                    cls = getattr(importlib.import_module(x.get("path")), x.get('name'))
+                    test = cls(x.get('settings'))
+                    test_results.append(test.run_test(prj))
+                except AttributeError as e:
+                    print('AttributeError', e)
+                except ModuleNotFoundError as e:
+                    print('ModuleNotFoundError', e)
 
-    for x in the_good_ones:
-        if str(pous[x].joinpath()).replace(f'{x}{pou_suffix}', '') == str(configs[x].joinpath()).replace(f'{x}{config_suffix}', ''):
-            pass
-        else:
-            print(f'POU and config of {x} are not in the same folder.')
-            print(f'POU files is in folder {pous[x].joinpath()}')
-            print(f'Config files is in folder {configs[x].joinpath()}')
-
-    xunit_results_xml = get_xunit_result_xml()
-    test_id = 0
-    # check if POU has config
-    test_id = add_test_results_to_xunit_results_xml(xunit_results_xml,
-                                                    'Test if POU has config',
-                                                    the_good_ones,
-                                                    pous_without_config,
-                                                    test_id)
-
-    # check if config has POU
-    test_id = add_test_results_to_xunit_results_xml(xunit_results_xml,
-                                                    'Test if config has POU',
-                                                    the_good_ones,
-                                                    config_without_pou,
-                                                    test_id)
-
-    # check if pou and config are in the same folder
-
-    tree = etree.ElementTree(xunit_results_xml)
-    tree.write('TcArch_results.xml', pretty_print=True)
-    if len(pous_without_config) > 0 or len(config_without_pou) > 0:
-        exit(1)
-    else:
-        exit(0)
+#
+#    if config.get('TcUnit-Checks', 'enable'):
+#        from TcUnit_Checks import TcUnit_CheckerRunner
+#        unitTestInternal = TcUnit_CheckerRunner(config)
+##        tree = etree.ElementTree(unitTestInternal)
+##        tree.write("TcArchResults.xml")
+#    if config.get('PouConfigFile-Checks', 'enable'):
+#        from PouConfigFile_Checks import PouConfigFile_CheckerRunner
+#        unitTestInternal = PouConfigFile_CheckerRunner(config)
 
 
 
-#  add test to make sure all test FB are internal
