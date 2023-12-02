@@ -7,14 +7,13 @@ suit_name = __name__.split('.')[-1]
 class TerminalAbstractionConfigFilesTest(object):
     def __init__(self, settings):
         self.settings = settings
-        self.folder_ignore_list = settings.get('folderIgnoreList')
-        if ',' in self.folder_ignore_list:
+        self.folder_ignore_list = settings.get('folderIgnoreList', False)
+        if self.folder_ignore_list and ',' in self.folder_ignore_list:
             self.folder_ignore_list = [x.strip().upper() for x in self.folder_ignore_list.split(',')]
-        self.config_file_prefix = settings.get('configFilePrefix')
-        self.config_file_suffix = settings.get('TerminalAbstractionConfigFilesTest', 'configFileSuffix')
-        self.config_file_ending = settings.get('TerminalAbstractionConfigFilesTest', 'configFileEnding')
-        self.config_file_relative_to_pou_file = settings.get('TerminalAbstractionConfigFilesTest',
-                                                           'configFileRelativeToPouFile')
+        self.config_file_prefix = settings.get('configFilePrefix', None)
+        self.config_file_suffix = settings.get('configFileSuffix', None)
+        self.config_file_ending = settings.get('configFileEnding', None)
+        self.config_file_relative_to_pou_file = settings.get('configFileRelativeToPouFile', None)
 
     def run_test(self, prj: PlcProject) -> list[TcArchTestResult]:
         results = []

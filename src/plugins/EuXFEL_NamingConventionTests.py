@@ -1,12 +1,14 @@
+import re
 from src.TcArch import TcArchTestResult
 from src.PlcProject import PlcProject
+from src.utils import simple_naming_convention_tester, Casing
 
 suit_name = __name__.split('.')[-1]
 
 
 class FunctionBlockNamingConventionTest(object):
     def __init__(self, settings):
-        self.settings = settings
+        pass
 
     def run_test(self, prj: PlcProject) -> list[TcArchTestResult]:
         results = []
@@ -22,3 +24,18 @@ class FunctionBlockNamingConventionTest(object):
             return False
         else:
             return True
+
+
+class InterfaceNamingConventionTest(object):
+    def __init__(self, settings):
+        self.prefix = settings.get('prefix', None)
+        self.suffix = settings.get('suffix', None)
+        self.casing = Casing[settings.get('casing', 'NONE')]
+
+    def run_test(self, prj: PlcProject) -> list[TcArchTestResult]:
+        results = []
+        for interface in prj.get_interfaces():
+            res, msg = simple_naming_convention_tester(interface.name, prefix=self.prefix, suffix=self.suffix,
+                                                       casing=self.casing)
+            results.append(TcArchTestResult(suit_name, self.__class__.__name__, 12, res, f'Interface name {interface.name}, {msg}'))
+        return results

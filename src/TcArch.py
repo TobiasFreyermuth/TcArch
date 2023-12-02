@@ -1,6 +1,8 @@
 import argparse
 import pathlib
 import json
+from dataclasses import dataclass, field
+from random import randint
 from lxml import etree
 
 
@@ -40,15 +42,15 @@ class Checker(object):
         pass
 
 
-class TcArchTestResult(object):
-    def __init__(self, suit_name, name, id, has_passed, message='', exception_type='no clue', stack_trace='stack-trace'):
-        self.suit_name = suit_name
-        self.name = name
-        self.id = id
-        self.has_passed = has_passed
-        self.message = message
-        self.exception_type = exception_type
-        self.stack_trace = stack_trace
+@dataclass
+class TcArchTestResult:
+    suit_name: str = field(repr=False, default='')
+    name: str = field(repr=True, default='')
+    id: int = field(repr=False, default=randint(0, 10000))
+    has_passed: bool = field(repr=True, default=False)
+    message: str = field(repr=True, default='')
+    exception_type: str = field(repr=False, default='no clue')
+    stack_trace: str = field(repr=False, default='tack-trace')
 
     def get_xml(self):
         if self.has_passed:

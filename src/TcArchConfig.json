@@ -20,6 +20,19 @@
     { "name":  "TcUnitTestAreInternalTest",
       "path": "plugins.EuXFEL_LibraryTest",
       "settings":{}
+    },
+    { "name":  "InterfaceNamingConventionTest",
+      "path": "plugins.EuXFEL_NamingConventionTests",
+      "settings":{"prefix":  "I_",
+        "casing": "PASCAL_CASE"
+      }
+    },
+    { "name":  "TcUnitTestNamingConventionTest",
+      "path": "plugins.EuXFEL_LibraryTest",
+      "settings": {
+        "suffix": "_Test",
+        "casing": "CAMEL_CASE"
+      }
     }
   ]
 }

@@ -1,4 +1,3 @@
-import pytest
 from src.PlcProjectParser.TwinCatProjectParser import (TwinCatProjectParser, __remove_block_comments,
                                                        __remove_inline_comments, __remove_all_comments)
 
