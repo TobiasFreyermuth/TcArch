@@ -20,7 +20,7 @@ class FunctionBlockNamingConventionTest(object):
 
     @staticmethod
     def path_filter_func(path):
-        if '_internal'.upper() in [x.upper() for x in path.split('/')]:
+        if '_internal'.upper() in [x.upper() for x in str(path).split('/')]:
             return False
         else:
             return True

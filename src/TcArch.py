@@ -77,6 +77,12 @@ class TcArchTestResult:
 
         return test_node
 
+    def __eq__(self, other):
+        return (self.name, self.has_passed, self.message) == (other.name, other.has_passed, other.message)
+
+    def __ne__(self, other):
+        return self != other
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

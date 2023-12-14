@@ -9,6 +9,13 @@
                   "configFileEnding": "xml",
                   "configFileRelativeToPouFile": "/"}
   },
+  { "name":  "PouFolderStructureTest",
+      "path": "plugins.EuXFEL_TcHAL_Tests",
+      "settings":  {
+        "folderIgnoreList": ["_internal", "Other"],
+        "MinFolderNestingLevel":  3,
+        "MaxFolderNestingLevel":  3}
+  },
    { "name":  "FunctionBlockNamingConventionTest",
       "path": "plugins.EuXFEL_NamingConventionTests",
       "settings":  {"folderIgnoreList": ["_internal", "Utilities"],

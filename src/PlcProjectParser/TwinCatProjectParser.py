@@ -4,26 +4,26 @@ from enum import Enum
 
 from lxml import etree
 
-from src.PlcProject import PlcProject, Programm, FunctionBlock, Function, Interface
+from src.PlcProject import TwinCATPlcProject, Programm, FunctionBlock, Function, Interface, PlcProject
 
 
 def TwinCatProjectParser(path_to_project: pathlib.Path) -> PlcProject:
-    prj = PlcProject()
+    prj = TwinCATPlcProject(path_to_project)
+    prj.name = path_to_project.stem
+    prj.path = str(path_to_project)
 
     for file in path_to_project.rglob(f'**/*'):
         if file.name.endswith('TcPOU'):
             decl = __get_pou_declaration(file)
             match __get_pou_type(decl):
                 case ElementType.PROGRAM:
-                    prj.add_pou(Programm(name=file.stem, path=str(file.absolute()), declaration=decl,
-                                         implementation=''))
+                    prj.add_pou(Programm(name=file.stem, path=file.absolute(), declaration=decl, implementation=''))
                 case ElementType.FUNCTIONBLOCK:
-                    prj.add_pou(FunctionBlock(name=file.stem, path=str(file.absolute()), declaration=decl,
+                    prj.add_pou(FunctionBlock(name=file.stem, path=file.absolute(), declaration=decl,
                                               implementation=''))
                 case ElementType.FUNCTION:
-                    prj.add_pou(Function(name=file.stem, path=str(file.absolute()), declaration=decl,
-                                         implementation=''))
-                case other:
+                    prj.add_pou(Function(name=file.stem, path=file.absolute(), declaration=decl, implementation=''))
+                case _:
                     raise ValueError(f'this should never happen')
 
         elif file.name.endswith('TcDUT'):
@@ -34,11 +34,12 @@ def TwinCatProjectParser(path_to_project: pathlib.Path) -> PlcProject:
             decl = __get_interface_declaration(file)
             match __get_pou_type(decl):
                 case ElementType.INTERFACE:
-                    prj.add_pou(Interface(name=file.stem, path=str(file.absolute()), declaration=decl))
+                    prj.add_pou(Interface(name=file.stem, path=file.absolute(), declaration=decl))
                 case other:
                     raise ValueError(f'this should never happen')
 
-            #
+        elif file.name.endswith('plcproj'):
+            prj.plc_project_file =file
 
         else:
             if file.is_file():

@@ -1,20 +1,61 @@
 from dataclasses import dataclass, field
+from typing import Protocol
 from enum import Enum
+import pathlib
 
 
-class PlcProject(object):
+class PlcProject(Protocol):
+    def add_pou(self, pou):
+        ...
+
+    def get_function_blocks(self, path_filter=None):
+        ...
+
+    def get_functions(self, path_filter=None):
+        ...
+
+    def get_programms(self, path_filter=None):
+        ...
+
+    def get_interfaces(self, path_filter=None):
+        ...
+
+    def get_pous(self, path_filter=None):
+        ...
+
+    @property
+    def artefacts(self) -> dict:
+        ...
+
+    @property
+    def path(self) -> pathlib.Path:
+        ...
+
+    @path.setter
+    def path(self, val: pathlib.Path):
+        ...
+
+    @property
+    def plc_project_file(self) -> pathlib.Path:
+        ...
+
+
+
+class TwinCATPlcProject:
     """
     This class holds parsed data of a PLC project and should be used as the data source for most, if not all TcArch test
     against a PLC project.
     I provides methods to retrieve, files and folder structures, POU implementations, POU declarations and so on.
     """
-    def __init__(self):
+    def __init__(self, path: pathlib.Path):
         self.name = 'PlcProjectName'
         self.project_type = 'project type'  # type of the source the project was parsed from e.g. TwinCAT, PLC open export, ...
         self.__pous = []
         self.gvls = {}
         self.duts = {}
         self.artefacts = {}  # all other artefacts which do not belong into POUs, GVLs or DUTs e.g. xml files
+        self.path: pathlib.Path = path
+        self.plc_project_file: pathlib.Path = path
 
     def add_pou(self, pou):
         if pou is not None:
@@ -57,7 +98,7 @@ class Access(Enum):
 @dataclass
 class Pou:
     name: str
-    path: str
+    path: pathlib.Path = field()
     declaration: str = field(repr=False, default='')
     final: bool = field(default=False)
     access_level_modifier: Access = field(default=Access.NONE)
@@ -72,7 +113,7 @@ class Programm(Pou):
 
 @dataclass
 class Method(Pou):
-    path = ''
+    path = pathlib.Path('.')
     abstract: bool = field(default=False)
     final: bool = field(default=False)  # Overwriting the method in a derivative of the function block is not allowed. This means that the method may not be overwritten/extended in a possibly existing subclass.
     implementation: str = field(repr=False, default='')
@@ -97,5 +138,5 @@ class Interface(Pou):
 
 @dataclass
 class Property(Pou):
-    path = ''
+    path = pathlib.Path('.')
     abstract: bool = field(default=False)
